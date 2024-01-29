@@ -1,0 +1,17 @@
+1. node fileName : runs the node js file
+
+2. node --watch fileName : runs and restart file when any change occurs
+
+3. Pass Environment Variable
+    1. VariableName=value node fileName : (syntax for bash)
+    2. $env:VariableName=value; node fileName : (syntax for Environment)
+    3. process.env.VariableName; : to get value of env variable in js file
+
+4. node --env-file=.env fileName : to access data from .env file (syntax for bash)
+
+5. node : starts the REPL session
+
+6. start repl using js file
+    const repl = require('node:repl') : js file code
+    repl.start() : js file code
+    node fileName : run in terminal
