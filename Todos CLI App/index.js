@@ -1,7 +1,20 @@
 const fs = require('node:fs')
 
-// npm install readline-sync
-const readlineSync = require('readline-sync')
+const readline = require('node:readline').createInterface({
+    input : process.stdin,
+    output : process.stdout
+})
+readline.pause()
+
+function takeInput(question) {
+    return new Promise((resolve)=>{
+        readline.resume()
+        readline.question(question, (reply) => {
+            readline.pause()
+            resolve(reply)
+        })
+    })
+}
 
 function fileReader() {
     try {
@@ -27,8 +40,8 @@ function fileWriter(jsonData){
     }
 }
 
-function createTodo(){
-    let todo = readlineSync.question("Write Your Todo : ")
+async function createTodo(){
+    let todo = await takeInput("Write Your Todo : ")
     let fileData = fileReader()
     fileData['Todos'].push(todo)
     let jsonData = JSON.stringify(fileData)
@@ -50,7 +63,7 @@ function readTodo(){
     }
 }
 
-function updateTodo(){
+async function updateTodo(){
     fileData = fileReader()
     if(fileData['Todos'] == '')
     {
@@ -58,17 +71,15 @@ function updateTodo(){
     }
     else{
         readTodo()
-        let todoNumber = readlineSync.question("Which todo you want to update : ")
+        let todoNumber = await takeInput("Which todo you want to update : ")
         let found = 0
-        let array = fileData['Todos'].map((todo,index)=>{
+        fileData['Todos'].forEach((todo,index)=>{
             if(index == todoNumber-1){
-                todo = readlineSync.question("Write updated todo : ")
                 found++
             }
-            return todo
         })
         if(found != 0){
-            fileData['Todos'] = array
+            fileData['Todos'][todoNumber-1] = await takeInput("Write updated todo : ")
             let jsonData = JSON.stringify(fileData)
             fileWriter(jsonData)
             console.log("Todo is updated Sucessfully")
@@ -79,7 +90,7 @@ function updateTodo(){
     }
 }
 
-function deleteTodo(){
+async function deleteTodo(){
     fileData = fileReader()
     if(fileData['Todos'] == '')
     {
@@ -87,7 +98,7 @@ function deleteTodo(){
     }
     else{
         readTodo()
-        let todoNumber = readlineSync.question("Which todo you want to delete : ")
+        let todoNumber = await takeInput("Which todo you want to delete : ")
         let found = 0
         let array = fileData['Todos'].filter((todo,index)=>{
             if(index == todoNumber-1){
@@ -109,29 +120,34 @@ function deleteTodo(){
     }
 }
 
-function takeInput(){
-    let choice = readlineSync.question('Choose any one\n1. Create Todo\n2. Read Todos\n3. Update Todo\n4. Delete Todo\nPress any other key to exit\n')
+async function main(){
+    let choice = await takeInput("Choose any one\n1. Create Todo\n2. Read Todos\n3. Update Todo\n4. Delete Todo\nPress any other key to exit\n")
     if(choice>0 && choice<5){
         if(choice == 1){
-            createTodo()
+            await createTodo()
         }
         else if(choice == 2)
         {
-            readTodo()
+            await readTodo()
         }
         else if(choice == 3){
-            updateTodo()
+            await updateTodo()
         }
         else if(choice == 4){
-            deleteTodo()
+            await deleteTodo()
         }
         else{
             console.log("Invalid Choice")
         }
-        takeInput()
+        await main()
     }
     else{
         console.log('Thank you for using our Service')
     }
 }
-takeInput()
+
+async function run(){
+    await main()
+}
+
+run()
