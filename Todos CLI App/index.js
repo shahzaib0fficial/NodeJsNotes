@@ -1,13 +1,38 @@
-const fs = require('node:fs')
+const http = require('node:http')
+
+const url = 'http://127.0.0.1:3000'
+
+const optionsGet = {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+    }
+}
+
+const optionsCreate = {
+    path: '/',
+    method: 'POST',
+}
+
+const optionsUpdate = {
+    path: '/update',
+    method: 'POST',
+}
+
+const optionsDelete = {
+    path: '/delete',
+    method: 'POST',
+    // method: 'DELETE',
+} 
 
 const readline = require('node:readline').createInterface({
-    input : process.stdin,
-    output : process.stdout
+    input: process.stdin,
+    output: process.stdout
 })
 readline.pause()
 
 function takeInput(question) {
-    return new Promise((resolve)=>{
+    return new Promise((resolve) => {
         readline.resume()
         readline.question(question, (reply) => {
             readline.pause()
@@ -16,138 +41,139 @@ function takeInput(question) {
     })
 }
 
-function fileReader() {
-    try {
-        let fileId = fs.openSync('todos.json', 'a+')
-        let jsonData = fs.readFileSync(fileId, 'utf8')
-        if (jsonData == '') {
-            fs.writeFileSync(fileId, '{"Todos":[]}')
-            jsonData = fs.readFileSync('todos.json', 'utf8')
-        }
-        let data = JSON.parse(jsonData)
-        fs.close(fileId)
-        return data
-    } catch (err) {
-        return 'Error in opening Todos'
-    }
-}
-
-function fileWriter(jsonData){
-    try{
-        fs.writeFileSync('todos.json',jsonData)
-    }catch(err){
-        console.log("Error in writing file")
-    }
-}
-
-async function createTodo(){
+async function createTodo() {
     let todo = await takeInput("Write Your Todo : ")
-    let fileData = fileReader()
-    fileData['Todos'].push(todo)
-    let jsonData = JSON.stringify(fileData)
-    fileWriter(jsonData)
-    console.log('Todo added Sucessfully')
+    let jsonData = JSON.stringify(todo)
+    return new Promise((resolve, rejects) => {
+        const req = http.request(url, optionsCreate, (res) => {
+            let response = ''
+            res.on('data', (chunk) => {
+                response += chunk
+            })
+            res.on('end', () => {
+                console.log(response)
+                resolve()
+            })
+        })
+
+        req.on('error', () => {
+            console.log("Got an error in Fetching")
+            rejects()
+        })
+
+        req.write(jsonData)
+        req.end()
+    })
 }
 
-function readTodo(){
-    fileData = fileReader()
-    if(fileData['Todos'] == '')
-    {
-        console.log("You Won't have any Todos")
-    }
-    else{
-        console.log('Your Todos are')
-        fileData['Todos'].forEach((todo,index) => {
-            console.log(`${index+1}. ${todo}`)
-        });
-    }
+async function readTodo() {
+    return new Promise((resolve, rejects) => {
+        const req = http.request(url, optionsGet, (res) => {
+            let response = ''
+            res.on('data', (chunk) => {
+                response += chunk
+            })
+            res.on('end', () => {
+                fileData = JSON.parse(response)
+                if (fileData['Todos'] == '') {
+                    console.log("You Won't have any Todos")
+                    resolve(0)
+                }
+                else {
+                    console.log('Your Todos are')
+                    fileData['Todos'].forEach((todo, index) => {
+                        console.log(`${index + 1}. ${todo}`)
+                        resolve(1)
+                    })
+                }
+            })
+        })
+
+        req.on('error', () => {
+            console.log("You got an error in Fetching")
+            rejects()
+        })
+        req.end()
+    })
 }
 
-async function updateTodo(){
-    fileData = fileReader()
-    if(fileData['Todos'] == '')
-    {
-        console.log("You Won't have any Todos")
-    }
-    else{
-        readTodo()
+async function updateTodo() {
+    if (await readTodo() != 0) {
         let todoNumber = await takeInput("Which todo you want to update : ")
-        let found = 0
-        fileData['Todos'].forEach((todo,index)=>{
-            if(index == todoNumber-1){
-                found++
-            }
+        let updatedTodo = await takeInput("Write updated todo : ")
+        let updateInfo = {
+            todoNumber: todoNumber,
+            updatedTodo: updatedTodo
+        }
+        updateInfo = JSON.stringify(updateInfo)
+        return new Promise((resolve) => {
+            const req = http.request(url, optionsUpdate, (res) => {
+                let response = ''
+                res.on('data', (chunk) => {
+                    response += chunk
+                })
+                res.on('end', () => {
+                    console.log(response)
+                    resolve()
+                })
+            })
+            req.on('error', () => {
+                console.log("You got an error in Updating")
+            })
+            req.write(updateInfo)
+            req.end()
         })
-        if(found != 0){
-            fileData['Todos'][todoNumber-1] = await takeInput("Write updated todo : ")
-            let jsonData = JSON.stringify(fileData)
-            fileWriter(jsonData)
-            console.log("Todo is updated Sucessfully")
-        }
-        else{
-            console.log("Your choice is out of bound")
-        }
     }
+
 }
 
-async function deleteTodo(){
-    fileData = fileReader()
-    if(fileData['Todos'] == '')
-    {
-        console.log("You Won't have any Todos")
-    }
-    else{
-        readTodo()
+async function deleteTodo() {
+    if (await readTodo() != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        let found = 0
-        let array = fileData['Todos'].filter((todo,index)=>{
-            if(index == todoNumber-1){
-                found++
-            }
-            else{
-                return todo
-            }
+        todoNumber = JSON.stringify(todoNumber)
+        return new Promise((resolve) => {           
+            const req = http.request(url, optionsDelete, (res) => {
+                let response = ''
+                res.on('data', (chunk) => {
+                    response += chunk
+                })
+                res.on('end', () => {
+                    console.log(response)
+                    resolve()
+                })
+            })
+            req.on('error', () => {
+                console.log("You got an error in Deleting")
+            })
+            req.write(todoNumber)
+            req.end()
         })
-        if(found != 0){
-            fileData['Todos'] = array
-            let jsonData = JSON.stringify(fileData)
-            fileWriter(jsonData)
-            console.log("Todo is Deleted Sucessfully")
-        }
-        else{
-            console.log("Your choice is out of bound")
-        }
     }
 }
 
-async function main(){
+async function main() {
     let choice = await takeInput("Choose any one\n1. Create Todo\n2. Read Todos\n3. Update Todo\n4. Delete Todo\nPress any other key to exit\n")
-    if(choice>0 && choice<5){
-        if(choice == 1){
+    if (choice > 0 && choice < 5) {
+        if (choice == 1) {
             await createTodo()
         }
-        else if(choice == 2)
-        {
+        else if (choice == 2) {
             await readTodo()
         }
-        else if(choice == 3){
+        else if (choice == 3) {
             await updateTodo()
         }
-        else if(choice == 4){
+        else if (choice == 4) {
             await deleteTodo()
         }
-        else{
+        else {
             console.log("Invalid Choice")
         }
-        await main()
+        main()
     }
-    else{
+    else {
         console.log('Thank you for using our Service')
     }
 }
 
-async function run(){
-    await main()
-}
-
-run()
+main()
