@@ -19,12 +19,6 @@ const optionsUpdate = {
     method: 'POST',
 }
 
-const optionsDelete = {
-    path: '/delete',
-    method: 'POST',
-    // method: 'DELETE',
-} 
-
 const readline = require('node:readline').createInterface({
     input: process.stdin,
     output: process.stdout
@@ -130,7 +124,13 @@ async function updateTodo() {
 async function deleteTodo() {
     if (await readTodo() != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        todoNumber = JSON.stringify(todoNumber)
+        const optionsDelete = {
+            path: '/',
+            method: 'DELETE',
+            headers : {
+                'id' : todoNumber
+            }
+        } 
         return new Promise((resolve) => {           
             const req = http.request(url, optionsDelete, (res) => {
                 let response = ''
@@ -145,7 +145,6 @@ async function deleteTodo() {
             req.on('error', () => {
                 console.log("You got an error in Deleting")
             })
-            req.write(todoNumber)
             req.end()
         })
     }

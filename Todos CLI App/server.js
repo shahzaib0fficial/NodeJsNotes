@@ -75,18 +75,18 @@ const server = http.createServer((req, res) => {
             }
         })
     }
-    else if (req.method == 'POST' && req.url == '/delete') {
-        let userData = ''
+    else if (req.method == 'DELETE' && req.url == '/') {
+        const id = parseInt(req.headers["id"])
+        let rawData = ''
         req.on('data', (chunk) => {
-            userData += chunk
+            rawData += chunk
         })
         let jsonData = fileReader()
         let data = JSON.parse(jsonData)
         req.on('end', () => {
             let found = 0
-            userData = JSON.parse(userData)
             let array = data['Todos'].filter((todo, index) => {
-                if (index == userData - 1) {
+                if (index == id - 1) {
                     found++
                 }
                 else {
