@@ -43,13 +43,14 @@ const server = http.createServer((req, res) => {
         let data = JSON.parse(jsonData)
         req.on('end', () => {
             userData = JSON.parse(userData)
-            data['Todos'].push(userData)
+            data['Todos'].push(userData["todo"])
             jsonData = JSON.stringify(data)
             fileWriter(jsonData)
             res.end("Todo Added Succesfully")
         })
     }
-    else if (req.method == 'POST' && req.url == '/update') {
+    else if (req.method == 'PUT' && req.url == '/') {
+        const id = parseInt(req.headers["id"])
         let userData = ''
         req.on('data', (chunk) => {
             userData += chunk
@@ -60,12 +61,12 @@ const server = http.createServer((req, res) => {
             userData = JSON.parse(userData)
             let found = 0
             data['Todos'].forEach((todo, index) => {
-                if (index == userData['todoNumber'] - 1) {
+                if (index == id - 1) {
                     found++
                 }
             })
             if (found != 0) {
-                data['Todos'][userData['todoNumber'] - 1] = userData['updatedTodo']
+                data['Todos'][id - 1] = userData['updatedTodo']
                 let jsonData = JSON.stringify(data)
                 fileWriter(jsonData)
                 res.end("Todo is updated Sucessfully")

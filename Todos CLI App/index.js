@@ -2,23 +2,6 @@ const http = require('node:http')
 
 const url = 'http://127.0.0.1:3000'
 
-const optionsGet = {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json',
-    }
-}
-
-const optionsCreate = {
-    path: '/',
-    method: 'POST',
-}
-
-const optionsUpdate = {
-    path: '/update',
-    method: 'POST',
-}
-
 const readline = require('node:readline').createInterface({
     input: process.stdin,
     output: process.stdout
@@ -36,10 +19,17 @@ function takeInput(question) {
 }
 
 async function createTodo() {
+    const options = {
+        path: '/',
+        method: 'POST',
+    }
     let todo = await takeInput("Write Your Todo : ")
-    let jsonData = JSON.stringify(todo)
+    let todoData = {
+        todo : todo
+    }
+    let jsonData = JSON.stringify(todoData)
     return new Promise((resolve, rejects) => {
-        const req = http.request(url, optionsCreate, (res) => {
+        const req = http.request(url, options, (res) => {
             let response = ''
             res.on('data', (chunk) => {
                 response += chunk
@@ -61,8 +51,14 @@ async function createTodo() {
 }
 
 async function readTodo() {
+    const options = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    }
     return new Promise((resolve, rejects) => {
-        const req = http.request(url, optionsGet, (res) => {
+        const req = http.request(url, options, (res) => {
             let response = ''
             res.on('data', (chunk) => {
                 response += chunk
@@ -96,12 +92,18 @@ async function updateTodo() {
         let todoNumber = await takeInput("Which todo you want to update : ")
         let updatedTodo = await takeInput("Write updated todo : ")
         let updateInfo = {
-            todoNumber: todoNumber,
             updatedTodo: updatedTodo
+        }
+        const options = {
+            path: '/',
+            method: 'PUT',
+            headers : {
+                'id' : todoNumber
+            }
         }
         updateInfo = JSON.stringify(updateInfo)
         return new Promise((resolve) => {
-            const req = http.request(url, optionsUpdate, (res) => {
+            const req = http.request(url, options, (res) => {
                 let response = ''
                 res.on('data', (chunk) => {
                     response += chunk
@@ -124,7 +126,7 @@ async function updateTodo() {
 async function deleteTodo() {
     if (await readTodo() != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        const optionsDelete = {
+        const options = {
             path: '/',
             method: 'DELETE',
             headers : {
@@ -132,7 +134,7 @@ async function deleteTodo() {
             }
         } 
         return new Promise((resolve) => {           
-            const req = http.request(url, optionsDelete, (res) => {
+            const req = http.request(url, options, (res) => {
                 let response = ''
                 res.on('data', (chunk) => {
                     response += chunk

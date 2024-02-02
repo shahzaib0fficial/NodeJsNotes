@@ -4,20 +4,22 @@ GET http://localhost:3000
 
 # POST on "/"
 
-# POST http://localhost:3000
+POST http://localhost:3000
 
-# "Clean The Room"
+{
+    "todo" : "Clean The Room"
+}
 
-# POST on "/update"
+# PUT on "/"
 
-# POST http://localhost:3000/update
+PUT http://localhost:3000
+id : 1
 
-# {
-#     "todoNumber" : 1,
-#     "updatedTodo" : "Updated Todo"
-# }
+{
+    "updatedTodo" : "Updated Todo"
+}
 
 # DELETE on "/"
 
-# DELETE http://localhost:3000
-# id : 1
+DELETE http://localhost:3000
+id : 1
