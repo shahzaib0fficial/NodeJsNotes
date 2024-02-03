@@ -25,7 +25,7 @@ async function createTodo() {
     }
     let todo = await takeInput("Write Your Todo : ")
     let todoData = {
-        todo : todo
+        todo: todo
     }
     let jsonData = JSON.stringify(todoData)
     return new Promise((resolve, rejects) => {
@@ -72,8 +72,8 @@ async function readTodo() {
                 else {
                     console.log('Your Todos are')
                     fileData['Todos'].forEach((todo, index) => {
-                        console.log(`${index + 1}. ${todo}`)
-                        resolve(1)
+                        console.log(`${index + 1}. ${todo['todo']}`)
+                        resolve(fileData)
                     })
                 }
             })
@@ -88,37 +88,43 @@ async function readTodo() {
 }
 
 async function updateTodo() {
-    if (await readTodo() != 0) {
+    const fileData = await readTodo()
+    if (fileData != 0) {
         let todoNumber = await takeInput("Which todo you want to update : ")
-        let updatedTodo = await takeInput("Write updated todo : ")
-        let updateInfo = {
-            updatedTodo: updatedTodo
+        if (todoNumber > fileData['Todos'].length || todoNumber < 1) {
+            console.log("Choice is out of bound")
         }
-        const options = {
-            path: '/',
-            method: 'PUT',
-            headers : {
-                'id' : todoNumber
+        else {
+            let updatedTodo = await takeInput("Write updated todo : ")
+            let updateInfo = {
+                updatedTodo: updatedTodo
             }
+            const options = {
+                path: '/',
+                method: 'PUT',
+                headers: {
+                    'id': fileData['Todos'][todoNumber - 1]['id']
+                }
+            }
+            updateInfo = JSON.stringify(updateInfo)
+            return new Promise((resolve) => {
+                const req = http.request(url, options, (res) => {
+                    let response = ''
+                    res.on('data', (chunk) => {
+                        response += chunk
+                    })
+                    res.on('end', () => {
+                        console.log(response)
+                        resolve()
+                    })
+                })
+                req.on('error', () => {
+                    console.log("You got an error in Updating")
+                })
+                req.write(updateInfo)
+                req.end()
+            })
         }
-        updateInfo = JSON.stringify(updateInfo)
-        return new Promise((resolve) => {
-            const req = http.request(url, options, (res) => {
-                let response = ''
-                res.on('data', (chunk) => {
-                    response += chunk
-                })
-                res.on('end', () => {
-                    console.log(response)
-                    resolve()
-                })
-            })
-            req.on('error', () => {
-                console.log("You got an error in Updating")
-            })
-            req.write(updateInfo)
-            req.end()
-        })
     }
 
 }
@@ -126,29 +132,34 @@ async function updateTodo() {
 async function deleteTodo() {
     if (await readTodo() != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        const options = {
-            path: '/',
-            method: 'DELETE',
-            headers : {
-                'id' : todoNumber
+        if (todoNumber > fileData['Todos'].length || todoNumber < 1) {
+            console.log("Choice is out of bound")
+        }
+        else {
+            const options = {
+                path: '/',
+                method: 'DELETE',
+                headers: {
+                    'id': fileData['Todos'][todoNumber - 1]['id']
+                }
             }
-        } 
-        return new Promise((resolve) => {           
-            const req = http.request(url, options, (res) => {
-                let response = ''
-                res.on('data', (chunk) => {
-                    response += chunk
+            return new Promise((resolve) => {
+                const req = http.request(url, options, (res) => {
+                    let response = ''
+                    res.on('data', (chunk) => {
+                        response += chunk
+                    })
+                    res.on('end', () => {
+                        console.log(response)
+                        resolve()
+                    })
                 })
-                res.on('end', () => {
-                    console.log(response)
-                    resolve()
+                req.on('error', () => {
+                    console.log("You got an error in Deleting")
                 })
+                req.end()
             })
-            req.on('error', () => {
-                console.log("You got an error in Deleting")
-            })
-            req.end()
-        })
+        }
     }
 }
 

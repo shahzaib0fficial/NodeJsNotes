@@ -1,5 +1,7 @@
 const http = require("node:http")
 const fs = require("node:fs")
+const crypto = require("node:crypto")
+// console.log("ID : ",crypto.randomBytes(16).toString('hex'))
 
 const hostName = '127.0.0.1'
 const port = '3000'
@@ -43,14 +45,27 @@ const server = http.createServer((req, res) => {
         let data = JSON.parse(jsonData)
         req.on('end', () => {
             userData = JSON.parse(userData)
-            data['Todos'].push(userData["todo"])
+            let id = crypto.randomBytes(16).toString('hex');
+            if (data['Todos'].length != 0){
+                for (let i = 0; i < data['Todos'].length; i++) {
+                    if (data['Todos'][i]['id'] == id) {
+                        id = crypto.randomBytes(16).toString('hex')
+                        i = 0
+                    }
+                }
+            }
+            todoData = {
+                id: id,
+                todo: userData["todo"]
+            }
+            data['Todos'].push(todoData)
             jsonData = JSON.stringify(data)
             fileWriter(jsonData)
             res.end("Todo Added Succesfully")
         })
     }
     else if (req.method == 'PUT' && req.url == '/') {
-        const id = parseInt(req.headers["id"])
+        const id = req.headers["id"]
         let userData = ''
         req.on('data', (chunk) => {
             userData += chunk
@@ -60,13 +75,15 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             userData = JSON.parse(userData)
             let found = 0
-            data['Todos'].forEach((todo, index) => {
-                if (index == id - 1) {
+            let index = 0
+            data['Todos'].forEach((todo, i) => {
+                if (data['Todos'][i]['id'] == id) {
+                    index = i
                     found++
                 }
             })
             if (found != 0) {
-                data['Todos'][id - 1] = userData['updatedTodo']
+                data['Todos'][index]['todo'] = userData['updatedTodo']
                 let jsonData = JSON.stringify(data)
                 fileWriter(jsonData)
                 res.end("Todo is updated Sucessfully")
@@ -77,7 +94,7 @@ const server = http.createServer((req, res) => {
         })
     }
     else if (req.method == 'DELETE' && req.url == '/') {
-        const id = parseInt(req.headers["id"])
+        const id = req.headers["id"]
         let rawData = ''
         req.on('data', (chunk) => {
             rawData += chunk
@@ -87,7 +104,7 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             let found = 0
             let array = data['Todos'].filter((todo, index) => {
-                if (index == id - 1) {
+                if (data['Todos'][index]['id'] == id) {
                     found++
                 }
                 else {

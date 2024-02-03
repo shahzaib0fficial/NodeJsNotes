@@ -1,8 +1,8 @@
-# GET on "/"
+### GET on "/"
 
 GET http://localhost:3000
 
-# POST on "/"
+### POST on "/"
 
 POST http://localhost:3000
 
@@ -10,7 +10,7 @@ POST http://localhost:3000
     "todo" : "Clean The Room"
 }
 
-# PUT on "/"
+### PUT on "/"
 
 PUT http://localhost:3000
 id : 1
@@ -19,7 +19,7 @@ id : 1
     "updatedTodo" : "Updated Todo"
 }
 
-# DELETE on "/"
+### DELETE on "/"
 
 DELETE http://localhost:3000
 id : 1
