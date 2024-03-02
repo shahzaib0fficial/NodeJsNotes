@@ -11,7 +11,7 @@ function fileReader() {
         let fileId = fs.openSync('todos.json', 'a+')
         let jsonData = fs.readFileSync(fileId, 'utf8')
         if (jsonData == '') {
-            fs.writeFileSync(fileId, '{"Todos":[]}')
+            fs.writeFileSync(fileId, '{"users":[],"todos":[]}')
             jsonData = fs.readFileSync('todos.json', 'utf8')
         }
         fs.closeSync(fileId)
@@ -30,7 +30,71 @@ function fileWriter(jsonData) {
 }
 
 const server = http.createServer((req, res) => {
-    if (req.method == 'GET' && req.url == '/') {
+    if (req.method == 'POST' && req.url == '/login') {
+        let userData = ''
+        req.on('data', (chunk) => {
+            userData += chunk
+        })
+        let jsonData = fileReader()
+        let data = JSON.parse(jsonData)
+        req.on('end', () => {
+            userData = JSON.parse(userData)
+            let found = 0
+            for (let i = 0; i < data["users"].length; i++) {
+                if (data["users"][i]["userName"] == userData["userName"] && data["users"][i]["password"] == userData["password"]) {
+                    found++
+                    break
+                }
+            }
+            let response
+            if (found != 0) {
+                response = {
+                    response: 1
+                }
+            }
+            else {
+                response = {
+                    response: -1
+                }
+            }
+            response = JSON.stringify(response)
+            res.end(response)
+        })
+    }
+    else if (req.method == 'POST' && req.url == '/signup') {
+        let userData = ''
+        req.on('data', (chunk) => {
+            userData += chunk
+        })
+        let jsonData = fileReader()
+        let data = JSON.parse(jsonData)
+        req.on('end', () => {
+            userData = JSON.parse(userData)
+            let found = 0
+            for (let i = 0; i < data["users"].length; i++) {
+                if (data["users"][i]["userName"] == userData["userName"]) {
+                    found++
+                    break
+                }
+            }
+            let response
+            if (found == 0) {
+                data["users"][data["users"].length] = userData
+                fileWriter(JSON.stringify(data))
+                response = {
+                    response: 1
+                }
+            }
+            else {
+                response = {
+                    response: -1
+                }
+            }
+            response = JSON.stringify(response)
+            res.end(response)
+        })
+    }
+    else if (req.method == 'GET' && req.url == '/') {
         res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         let jsonData = fileReader()
@@ -46,7 +110,7 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             userData = JSON.parse(userData)
             let id = crypto.randomBytes(16).toString('hex');
-            if (data['Todos'].length != 0){
+            if (data['Todos'].length != 0) {
                 for (let i = 0; i < data['Todos'].length; i++) {
                     if (data['Todos'][i]['id'] == id) {
                         id = crypto.randomBytes(16).toString('hex')
