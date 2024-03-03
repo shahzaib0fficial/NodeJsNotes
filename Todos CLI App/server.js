@@ -95,10 +95,26 @@ const server = http.createServer((req, res) => {
         })
     }
     else if (req.method == 'GET' && req.url == '/') {
+        const userName = req.headers["username"]
+
         res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         let jsonData = fileReader()
-        res.end(jsonData)
+        fileData = JSON.parse(jsonData)
+        userTodoData = {"todos":[]}
+        let todoPush = null
+        fileData['todos'].forEach((todo) => {
+            if(todo['userName'] == userName){
+                todoPush = {
+                    id : todo['id'],
+                    todo : todo['todo']
+                }
+                userTodoData['todos'].push(todoPush)                
+            }
+        })
+
+        userTodoData = JSON.stringify(userTodoData)
+        res.end(userTodoData)
     }
     else if (req.method == 'POST' && req.url == '/') {
         let userData = ''
@@ -110,19 +126,20 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             userData = JSON.parse(userData)
             let id = crypto.randomBytes(16).toString('hex');
-            if (data['Todos'].length != 0) {
-                for (let i = 0; i < data['Todos'].length; i++) {
-                    if (data['Todos'][i]['id'] == id) {
+            if (data['todos'].length != 0) {
+                for (let i = 0; i < data['todos'].length; i++) {
+                    if (data['todos'][i]['id'] == id) {
                         id = crypto.randomBytes(16).toString('hex')
                         i = 0
                     }
                 }
             }
             todoData = {
+                userName: userData["userName"],
                 id: id,
-                todo: userData["todo"]
+                todo: userData["todo"],
             }
-            data['Todos'].push(todoData)
+            data['todos'].push(todoData)
             jsonData = JSON.stringify(data)
             fileWriter(jsonData)
             res.end("Todo Added Succesfully")
@@ -140,14 +157,14 @@ const server = http.createServer((req, res) => {
             userData = JSON.parse(userData)
             let found = 0
             let index = 0
-            data['Todos'].forEach((todo, i) => {
-                if (data['Todos'][i]['id'] == id) {
+            data['todos'].forEach((todo, i) => {
+                if (data['todos'][i]['id'] == id) {
                     index = i
                     found++
                 }
             })
             if (found != 0) {
-                data['Todos'][index]['todo'] = userData['updatedTodo']
+                data['todos'][index]['todo'] = userData['updatedTodo']
                 let jsonData = JSON.stringify(data)
                 fileWriter(jsonData)
                 res.end("Todo is updated Sucessfully")
@@ -167,8 +184,8 @@ const server = http.createServer((req, res) => {
         let data = JSON.parse(jsonData)
         req.on('end', () => {
             let found = 0
-            let array = data['Todos'].filter((todo, index) => {
-                if (data['Todos'][index]['id'] == id) {
+            let array = data['todos'].filter((todo, index) => {
+                if (data['todos'][index]['id'] == id) {
                     found++
                 }
                 else {
@@ -176,7 +193,7 @@ const server = http.createServer((req, res) => {
                 }
             })
             if (found != 0) {
-                data['Todos'] = array
+                data['todos'] = array
                 let jsonData = JSON.stringify(data)
                 fileWriter(jsonData)
                 res.end("Todo is Deleted Sucessfully")

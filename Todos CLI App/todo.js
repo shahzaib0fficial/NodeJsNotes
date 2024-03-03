@@ -18,13 +18,14 @@ function takeInput(question) {
     })
 }
 
-async function createTodo() {
+async function createTodo(userName) {
     const options = {
         path: '/',
         method: 'POST',
     }
     let todo = await takeInput("Write Your Todo : ")
     let todoData = {
+        userName: userName,
         todo: todo
     }
     let jsonData = JSON.stringify(todoData)
@@ -50,11 +51,12 @@ async function createTodo() {
     })
 }
 
-async function readTodo() {
+async function readTodo(userName) {
     const options = {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
+            'username': userName
         }
     }
     return new Promise((resolve, rejects) => {
@@ -65,13 +67,14 @@ async function readTodo() {
             })
             res.on('end', () => {
                 fileData = JSON.parse(response)
-                if (fileData['Todos'] == '') {
+                // console.log(fileData['todos'])
+                if (fileData['todos'] == '') {
                     console.log("You Won't have any Todos")
                     resolve(0)
                 }
                 else {
                     console.log('Your Todos are')
-                    fileData['Todos'].forEach((todo, index) => {
+                    fileData['todos'].forEach((todo, index) => {
                         console.log(`${index + 1}. ${todo['todo']}`)
                         resolve(fileData)
                     })
@@ -87,11 +90,11 @@ async function readTodo() {
     })
 }
 
-async function updateTodo() {
-    const fileData = await readTodo()
+async function updateTodo(userName) {
+    const fileData = await readTodo(userName)
     if (fileData != 0) {
         let todoNumber = await takeInput("Which todo you want to update : ")
-        if (todoNumber > fileData['Todos'].length || todoNumber < 1) {
+        if (todoNumber > fileData['todos'].length || todoNumber < 1) {
             console.log("Choice is out of bound")
         }
         else {
@@ -103,7 +106,7 @@ async function updateTodo() {
                 path: '/',
                 method: 'PUT',
                 headers: {
-                    'id': fileData['Todos'][todoNumber - 1]['id']
+                    'id': fileData['todos'][todoNumber - 1]['id']
                 }
             }
             updateInfo = JSON.stringify(updateInfo)
@@ -129,10 +132,10 @@ async function updateTodo() {
 
 }
 
-async function deleteTodo() {
-    if (await readTodo() != 0) {
+async function deleteTodo(userName) {
+    if (await readTodo(userName) != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        if (todoNumber > fileData['Todos'].length || todoNumber < 1) {
+        if (todoNumber > fileData['todos'].length || todoNumber < 1) {
             console.log("Choice is out of bound")
         }
         else {
@@ -140,7 +143,7 @@ async function deleteTodo() {
                 path: '/',
                 method: 'DELETE',
                 headers: {
-                    'id': fileData['Todos'][todoNumber - 1]['id']
+                    'id': fileData['todos'][todoNumber - 1]['id']
                 }
             }
             return new Promise((resolve) => {
@@ -163,29 +166,33 @@ async function deleteTodo() {
     }
 }
 
-async function main() {
+async function main(userName) {
     let choice = await takeInput("Choose any one\n1. Create Todo\n2. Read Todos\n3. Update Todo\n4. Delete Todo\nPress any other key to exit\n")
     if (choice > 0 && choice < 5) {
         if (choice == 1) {
-            await createTodo()
+            await createTodo(userName)
         }
         else if (choice == 2) {
-            await readTodo()
+            await readTodo(userName)
         }
         else if (choice == 3) {
-            await updateTodo()
+            await updateTodo(userName)
         }
         else if (choice == 4) {
-            await deleteTodo()
+            await deleteTodo(userName)
         }
         else {
             console.log("Invalid Choice")
         }
-        main()
+        main(userName)
     }
     else {
         console.log('Thank you for using our Service')
     }
 }
 
-main()
+// main()
+
+module.exports = function(userName) {
+    main(userName)
+};

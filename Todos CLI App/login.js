@@ -44,8 +44,8 @@ async function loginVerify(){
             res.on('end',()=>{
                 let responseData = JSON.parse(responseJson)
                 if(responseData["response"] === 1){
-                    // resolve("Successfully login")
-                    resolve(1)
+                    resolve(userName)
+                    // resolve(1)
                 }
                 else{
                     // resolve("Username or Password is incorrect")

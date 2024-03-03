@@ -16,7 +16,7 @@ function takeInput(question) {
 }
 
 async function app() {
-    let response = -1
+    let response = null
     let choice = await takeInput("1. Log in\n2. Sign up\n")
     if (choice == 1) {
         try {
@@ -39,12 +39,16 @@ async function app() {
         // app()
     }
 
-    if(response != 1){
+    if(response == -1 || response == 0){
+        console.log("Error Occurs")
         app()
     }
-    else if(response==1){
-        require("./todo")
+    else{
+        console.log(`Successfully Logged In as ${response}`)
+        require("./todo")(response)
     }
 }
 
 app()
+
+// require("./todo")("VALUE")
