@@ -2,7 +2,8 @@ const http = require('http');
 
 const readline = require('node:readline').createInterface({
         input : process.stdin,
-        output : process.stdout
+        output : process.stdout,
+        terminal : false
 })
 readline.pause()
 
@@ -38,7 +39,7 @@ async function signUp(){
         path : "/signup",
         method : "POST"
     }
-    return new Promise((resolve)=>{
+    return new Promise((resolve,reject)=>{  
         const req = http.request(url,options,(res)=>{
             let responseJson = ''
             res.on('data',(chunk)=>{
@@ -47,15 +48,18 @@ async function signUp(){
             res.on('end',()=>{
                 let responseData = JSON.parse(responseJson)
                 if(responseData["response"] === 1){
-                    resolve("Successfully Signup")
+                    // resolve("Successfully Signup")
+                    resolve(1)
                 }
                 else{
-                    resolve("Username is already exists")
+                    // resolve("Username is already exists")
+                    resolve(0)
                 }
             })
         })
         req.on('error',()=>{
-            console.log("Some error occurs")
+            // resolve("Some error occurs")
+            resolve(-1)
         })
         req.write(signupJson)
         req.end()
@@ -63,7 +67,7 @@ async function signUp(){
 }
 
 async function main(){
-    console.log(await signUp())
+    return await signUp()
 }
 
-main()
+module.exports = main()

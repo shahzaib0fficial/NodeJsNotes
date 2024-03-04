@@ -94,7 +94,7 @@ async function updateTodo(userName) {
     const fileData = await readTodo(userName)
     if (fileData != 0) {
         let todoNumber = await takeInput("Which todo you want to update : ")
-        if (todoNumber > fileData['todos'].length || todoNumber < 1) {
+        if (todoNumber > fileData['todos'].length || todoNumber < 1 || isNaN(Number(todoNumber))) {
             console.log("Choice is out of bound")
         }
         else {
@@ -135,7 +135,7 @@ async function updateTodo(userName) {
 async function deleteTodo(userName) {
     if (await readTodo(userName) != 0) {
         let todoNumber = await takeInput("Which todo you want to delete : ")
-        if (todoNumber > fileData['todos'].length || todoNumber < 1) {
+        if (todoNumber > fileData['todos'].length || todoNumber < 1 || isNaN(Number(todoNumber))) {
             console.log("Choice is out of bound")
         }
         else {
