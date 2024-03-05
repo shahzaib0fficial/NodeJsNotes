@@ -1,12 +1,34 @@
+### Sign Up on "/signup"
+
+POST http://localhost:3000/signup
+
+{
+    "userName" : "user",
+    "firstName" : "My",
+    "lastName" : "User",
+    "password" : "12345678"
+}
+
+### Log In on "/login"
+
+POST http://localhost:3000/login
+
+{
+    "userName" : "user",
+    "password" : "12345678"
+}
+
 ### GET on "/"
 
 GET http://localhost:3000
+username : user
 
 ### POST on "/"
 
 POST http://localhost:3000
 
 {
+    "userName" : "user",
     "todo" : "Clean The Room"
 }
 
