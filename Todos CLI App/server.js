@@ -96,7 +96,6 @@ const server = http.createServer((req, res) => {
     }
     else if (req.method == 'GET' && req.url == '/') {
         const userName = req.headers["username"]
-
         res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         let jsonData = fileReader()
