@@ -111,7 +111,7 @@ const server = http.createServer((req, res) => {
                 userTodoData['todos'].push(todoPush)                
             }
         })
-
+        
         userTodoData = JSON.stringify(userTodoData)
         res.end(userTodoData)
     }
